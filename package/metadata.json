@@ -1,0 +1,20 @@
+{
+  "KPlugin": {
+    "Name": "VibeInColor Color Picker",
+    "Description": "A customizable color picker with wheel and outputs",
+    "Icon": "icons/vibeincolor.svg",
+    "Id": "org.threecrown.vibeincolor",
+    "Version": "1.0",
+    "Website": "https://github.com/threecrown/VibeInColor",
+    "Category": "Utilities",
+    "License": "GPL",
+    "Authors": [
+      {
+        "Email": "threecrown@otterlodgestudios.com",
+        "Name": "Stephan Adams"
+      }
+    ]
+  },
+  "X-Plasma-API-Minimum-Version": "6.0",
+  "KPackageStructure": "Plasma/Applet"
+}
