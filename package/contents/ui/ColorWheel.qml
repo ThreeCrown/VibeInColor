@@ -5,6 +5,9 @@ Item {
     property real hue: 0.0
     property real saturation: 1.0
 
+    signal updateHue(real hue)
+    signal updateSaturation(real saturation)
+
 ShaderEffect {
     id: shaderEffect
     anchors.fill: parent

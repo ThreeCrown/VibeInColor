@@ -6,23 +6,25 @@ import org.kde.kirigami as Kirigami
 ColumnLayout {
     id: root
     property var palettes: []
+    property var clipboard
+
     signal updatePalettes(var palettes)
 
     ListView {
         Layout.fillWidth: true
         Layout.fillHeight: true
-        model: palettes
+        model: palettes ? palettes : []
         delegate: Controls.ItemDelegate {
             width: ListView.view.width
             ColumnLayout {
-                Controls.Label { text: modelData.name }
+                Controls.Label { text: modelData.name || "Unnamed" }
                 RowLayout {
                     Repeater {
-                        model: modelData.colors
+                        model: modelData.colors || []
                         Rectangle {
                             width: 20
                             height: 20
-                            color: modelData.color
+                            color: modelData.color || "transparent"
                         }
                     }
                 }
@@ -50,15 +52,16 @@ ColumnLayout {
 
         PaletteDetail {
             anchors.fill: parent
-            palette: palettes[paletteIndex]
-            onPaletteChanged: {
+            palette: palettes[paletteDetailSheet.paletteIndex] || {name: "", colors: []}
+            clipboard: root.clipboard
+            onUpdatePalette: function(palette) {
                 let newPalettes = palettes.slice()
-                newPalettes[paletteIndex] = palette
+                newPalettes[paletteDetailSheet.paletteIndex] = palette
                 root.updatePalettes(newPalettes)
             }
             onDeleteRequested: {
                 let newPalettes = palettes.slice()
-                newPalettes.splice(paletteIndex, 1)
+                newPalettes.splice(paletteDetailSheet.paletteIndex, 1)
                 root.updatePalettes(newPalettes)
                 paletteDetailSheet.close()
             }
@@ -75,13 +78,20 @@ ColumnLayout {
     Component {
         id: newPaletteDialog
         Kirigami.OverlaySheet {
+            implicitWidth: Kirigami.Units.gridUnit * 20  // Reasonable fixed width
             title: "New Palette Name"
-            Kirigami.FormLayout {
-                Controls.TextField { id: nameField; placeholderText: "Palette name" }
+            ColumnLayout {  // Switched to ColumnLayout to avoid loops
+                Controls.Label { text: "Palette name:" }  // Optional explicit label
+                Controls.TextField {
+                    id: nameField
+                    Layout.fillWidth: true
+                    placeholderText: "Palette name"
+                }
                 Controls.Button {
+                    Layout.alignment: Qt.AlignRight
                     text: "Create"
                     onClicked: {
-                        let newPalette = {name: nameField.text, colors: []}
+                        let newPalette = {name: nameField.text || "New Palette", colors: []}
                         let newPalettes = palettes.slice()
                         newPalettes.push(newPalette)
                         root.updatePalettes(newPalettes)

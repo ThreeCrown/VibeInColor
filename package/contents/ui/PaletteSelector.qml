@@ -14,7 +14,7 @@ ColumnLayout {
 
     Controls.ComboBox {
         Layout.fillWidth: true
-        model: palettes.map(p => p.name)
+        model: palettes ? palettes.map(p => p.name || "Unnamed") : []
         currentIndex: selectedPaletteIndex
         onCurrentIndexChanged: selectedPaletteIndex = currentIndex
     }
@@ -22,11 +22,11 @@ ColumnLayout {
     RowLayout {
         Layout.fillWidth: true
         Repeater {
-            model: palettes.length > 0 ? palettes[selectedPaletteIndex].colors : []
+            model: palettes.length > 0 ? (palettes[selectedPaletteIndex].colors || []) : []
             Rectangle {
                 width: 30
                 height: 30
-                color: modelData.color
+                color: modelData.color || "transparent"
                 border.color: "black"
                 border.width: 1
                 Controls.ToolTip.text: modelData.nickname || ""
@@ -44,7 +44,7 @@ ColumnLayout {
         Controls.Button {
             text: "+ Add to Palette"
             onClicked: {
-                let dialog = nicknameDialog.component.createObject(root)
+                let dialog = nicknameDialog.createObject(root)
                 dialog.open()
             }
         }
@@ -52,7 +52,7 @@ ColumnLayout {
         Controls.Button {
             text: "New Palette"
             onClicked: {
-                let dialog = newPaletteDialog.component.createObject(root)
+                let dialog = newPaletteDialog.createObject(root)
                 dialog.open()
             }
         }
@@ -61,10 +61,17 @@ ColumnLayout {
     Component {
         id: nicknameDialog
         Kirigami.OverlaySheet {
+            implicitWidth: Kirigami.Units.gridUnit * 20  // Reasonable fixed width
             title: "Add Color Nickname"
-            Kirigami.FormLayout {
-                Controls.TextField { id: nickField; placeholderText: "Optional nickname" }
+            ColumnLayout {  // Switched to ColumnLayout to avoid loops
+                Controls.Label { text: "Nickname (optional):" }  // Optional explicit label
+                Controls.TextField {
+                    id: nickField
+                    Layout.fillWidth: true
+                    placeholderText: "Optional nickname"
+                }
                 Controls.Button {
+                    Layout.alignment: Qt.AlignRight
                     text: "Add"
                     onClicked: {
                         let newColors = palettes[selectedPaletteIndex].colors.slice()
@@ -82,14 +89,26 @@ ColumnLayout {
     Component {
         id: newPaletteDialog
         Kirigami.OverlaySheet {
+            implicitWidth: Kirigami.Units.gridUnit * 20  // Reasonable fixed width
             title: "New Palette Name"
-            Kirigami.FormLayout {
-                Controls.TextField { id: nameField; placeholderText: "Palette name" }
-                Controls.TextField { id: nickField2; placeholderText: "Nickname for first color" }
+            ColumnLayout {  // Switched to ColumnLayout to avoid loops
+                Controls.Label { text: "Palette name:" }  // Optional explicit label
+                Controls.TextField {
+                    id: nameField
+                    Layout.fillWidth: true
+                    placeholderText: "Palette name"
+                }
+                Controls.Label { text: "Nickname for first color:" }  // Optional explicit label
+                Controls.TextField {
+                    id: nickField2
+                    Layout.fillWidth: true
+                    placeholderText: "Nickname for first color"
+                }
                 Controls.Button {
+                    Layout.alignment: Qt.AlignRight
                     text: "Create"
                     onClicked: {
-                        let newPalette = {name: nameField.text, colors: [{color: selectedColor.toString(), nickname: nickField2.text}]}
+                        let newPalette = {name: nameField.text || "New Palette", colors: [{color: selectedColor.toString(), nickname: nickField2.text}]}
                         let newPalettes = palettes.slice()
                         newPalettes.push(newPalette)
                         root.updatePalettes(newPalettes)

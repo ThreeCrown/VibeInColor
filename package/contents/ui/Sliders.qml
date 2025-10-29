@@ -25,24 +25,42 @@ ColumnLayout {
         onCurrentTextChanged: root.updateMode(currentText)
     }
 
-    // HSV Sliders
+    // HSV Sliders with labels
     ColumnLayout {
         visible: mode === "HSV"
         Layout.fillWidth: true
 
-        Controls.Slider { from: 0; to: 1; value: root.hue; onMoved: root.updateHue(value) }
-        Controls.Slider { from: 0; to: 1; value: root.saturation; onMoved: root.updateSaturation(value) }
-        Controls.Slider { from: 0; to: 1; value: root.value; onMoved: root.updateValue(value) }
+        RowLayout {
+            Controls.Label { text: "H"; width: 20 }
+            Controls.Slider { Layout.fillWidth: true; from: 0; to: 1; value: root.hue; onMoved: root.updateHue(value) }
+        }
+        RowLayout {
+            Controls.Label { text: "S"; width: 20 }
+            Controls.Slider { Layout.fillWidth: true; from: 0; to: 1; value: root.saturation; onMoved: root.updateSaturation(value) }
+        }
+        RowLayout {
+            Controls.Label { text: "V"; width: 20 }
+            Controls.Slider { Layout.fillWidth: true; from: 0; to: 1; value: root.value; onMoved: root.updateValue(value) }
+        }
     }
 
-    // RGB Sliders (convert from/to HSV)
+    // RGB Sliders with labels (convert from/to HSV)
     ColumnLayout {
         visible: mode === "RGB"
         Layout.fillWidth: true
 
-        Controls.Slider { from: 0; to: 255; value: Math.round(root.selectedColor.r * 255); onMoved: updateRgb("r", value) }
-        Controls.Slider { from: 0; to: 255; value: Math.round(root.selectedColor.g * 255); onMoved: updateRgb("g", value) }
-        Controls.Slider { from: 0; to: 255; value: Math.round(root.selectedColor.b * 255); onMoved: updateRgb("b", value) }
+        RowLayout {
+            Controls.Label { text: "R"; width: 20 }
+            Controls.Slider { Layout.fillWidth: true; from: 0; to: 255; value: Math.round(root.selectedColor.r * 255); onMoved: updateRgb("r", value) }
+        }
+        RowLayout {
+            Controls.Label { text: "G"; width: 20 }
+            Controls.Slider { Layout.fillWidth: true; from: 0; to: 255; value: Math.round(root.selectedColor.g * 255); onMoved: updateRgb("g", value) }
+        }
+        RowLayout {
+            Controls.Label { text: "B"; width: 20 }
+            Controls.Slider { Layout.fillWidth: true; from: 0; to: 255; value: Math.round(root.selectedColor.b * 255); onMoved: updateRgb("b", value) }
+        }
 
         function updateRgb(channel, val) {
             let r = selectedColor.r * 255, g = selectedColor.g * 255, b = selectedColor.b * 255
@@ -57,8 +75,11 @@ ColumnLayout {
         }
     }
 
-    // Alpha Slider (common)
-    Controls.Slider { from: 0; to: 1; value: root.alpha; onMoved: root.updateAlpha(value) }
+    // Alpha Slider (common) with label
+    RowLayout {
+        Controls.Label { text: "A"; width: 20 }
+        Controls.Slider { Layout.fillWidth: true; from: 0; to: 1; value: root.alpha; onMoved: root.updateAlpha(value) }
+    }
 
     function colorToHsv(color) {
         let max = Math.max(color.r, color.g, color.b)
