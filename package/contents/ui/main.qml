@@ -65,13 +65,22 @@ Plasmoid.PlasmoidItem {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
 
-                    ColorWheel {
+                    Item {
+                      Layout.preferredWidth: parent.width * 0.6
+                      Layout.fillHeight: true
+
+                      ColorWheel {
                         id: colorWheel
-                        Layout.preferredWidth: parent.width * 0.6
-                        Layout.fillHeight: true
+                        anchors.centerIn: parent
+                        width: Math.min(parent.width, parent.height) * 0.8
+                        height: width
+                        hue: root.hue
+                        saturation: root.saturation
                         onHueChanged: root.hue = hue
                         onSaturationChanged: root.saturation = saturation
+                      }
                     }
+                    
 
                     Sliders {
                         id: sliders
