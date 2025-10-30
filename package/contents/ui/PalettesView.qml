@@ -13,7 +13,7 @@ ColumnLayout {
     ListView {
         Layout.fillWidth: true
         Layout.fillHeight: true
-        model: palettes ? palettes : []
+        model: palettes || []  // Add null check
         delegate: Controls.ItemDelegate {
             width: ListView.view.width
             ColumnLayout {
@@ -37,9 +37,21 @@ ColumnLayout {
         Layout.alignment: Qt.AlignHCenter
         text: "+ New Palette"
         onClicked: {
-            let dialog = newPaletteDialog.component.createObject(root)
+            let dialog = newPaletteSheet.createObject(root.parent, { withInitialColor: false })
+            dialog.accepted.connect(function() {
+                let newPalette = {name: dialog.paletteName || "New Palette", colors: []}
+                let newPalettes = (palettes || []).slice()
+                newPalettes.push(newPalette)
+                root.updatePalettes(newPalettes)
+                dialog.close()
+            })
             dialog.open()
         }
+    }
+
+    Component {
+        id: newPaletteSheet
+        NewPaletteSheet { }
     }
 
     Kirigami.OverlaySheet {
@@ -50,54 +62,42 @@ ColumnLayout {
             open()
         }
 
+        background: Rectangle {
+            color: Kirigami.Theme.backgroundColor
+            opacity: 0.95
+            radius: Kirigami.Units.smallSpacing * 2
+            border.color: Kirigami.Theme.textColor
+            border.width: 1
+        }
+
+        onOpened: {
+            if (parent) {
+                x = (parent.width - width) / 2
+                y = (parent.height - height) / 2
+            }
+        }
+
         PaletteDetail {
             anchors.fill: parent
-            palette: palettes[paletteDetailSheet.paletteIndex] || {name: "", colors: []}
+            palette: (palettes || [])[paletteDetailSheet.paletteIndex] || {name: "", colors: []}  // Add null check for palettes
             clipboard: root.clipboard
             onUpdatePalette: function(palette) {
-                let newPalettes = palettes.slice()
+                let newPalettes = (palettes || []).slice()
                 newPalettes[paletteDetailSheet.paletteIndex] = palette
                 root.updatePalettes(newPalettes)
             }
             onDeleteRequested: {
-                let newPalettes = palettes.slice()
+                let newPalettes = (palettes || []).slice()
                 newPalettes.splice(paletteDetailSheet.paletteIndex, 1)
                 root.updatePalettes(newPalettes)
                 paletteDetailSheet.close()
             }
             onCloneRequested: {
-                let clone = {name: palette.name + " Copy", colors: palette.colors.slice()}
-                let newPalettes = palettes.slice()
+                let clone = {name: palette.name + " Copy", colors: (palette.colors || []).slice()}
+                let newPalettes = (palettes || []).slice()
                 newPalettes.push(clone)
                 root.updatePalettes(newPalettes)
                 paletteDetailSheet.close()
-            }
-        }
-    }
-
-    Component {
-        id: newPaletteDialog
-        Kirigami.OverlaySheet {
-            implicitWidth: Kirigami.Units.gridUnit * 20  // Reasonable fixed width
-            title: "New Palette Name"
-            ColumnLayout {  // Switched to ColumnLayout to avoid loops
-                Controls.Label { text: "Palette name:" }  // Optional explicit label
-                Controls.TextField {
-                    id: nameField
-                    Layout.fillWidth: true
-                    placeholderText: "Palette name"
-                }
-                Controls.Button {
-                    Layout.alignment: Qt.AlignRight
-                    text: "Create"
-                    onClicked: {
-                        let newPalette = {name: nameField.text || "New Palette", colors: []}
-                        let newPalettes = palettes.slice()
-                        newPalettes.push(newPalette)
-                        root.updatePalettes(newPalettes)
-                        close()
-                    }
-                }
             }
         }
     }

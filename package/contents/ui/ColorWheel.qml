@@ -8,12 +8,12 @@ Item {
     signal updateHue(real hue)
     signal updateSaturation(real saturation)
 
-ShaderEffect {
-    id: shaderEffect
-    anchors.fill: parent
-    fragmentShader: "shaders/ColorWheel.frag.qsb"
+    ShaderEffect {
+        id: shaderEffect
+        anchors.fill: parent
+        fragmentShader: "shaders/ColorWheel.frag.qsb"
         onStatusChanged: if (status === ShaderEffect.Error) console.log("Shader error:", log)
-}
+    }
 
     // Picker indicator
     Rectangle {
@@ -28,19 +28,19 @@ ShaderEffect {
     }
 
     MouseArea {
-      anchors.fill: parent
-      onPressed: update(mouse)
-      onPositionChanged: update(mouse)
+        anchors.fill: parent
+        onPressed: (mouse) => update(mouse)  // Explicit param to fix deprecation
+        onPositionChanged: (mouse) => update(mouse)  // Explicit param
 
-      function update(mouse) {
-          let dx = mouse.x - width / 2
-          let dy = mouse.y - height / 2
-          let r = Math.sqrt(dx*dx + dy*dy) / (width / 2)
-          if (r > 1.0) return
-          let a = Math.atan2(dy, dx) / (2 * Math.PI)
-          if (a < 0) a += 1.0
-          root.updateHue(a)
-          root.updateSaturation(r)
-      }
-  }
+        function update(mouse) {
+            let dx = mouse.x - width / 2
+            let dy = mouse.y - height / 2
+            let r = Math.sqrt(dx*dx + dy*dy) / (width / 2)
+            if (r > 1.0) return
+            let a = Math.atan2(dy, dx) / (2 * Math.PI)
+            if (a < 0) a += 1.0
+            root.updateHue(a)
+            root.updateSaturation(r)
+        }
+    }
 }

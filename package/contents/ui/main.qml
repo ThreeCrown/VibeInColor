@@ -1,11 +1,11 @@
 import QtQuick 2.15
 import QtQuick.Layouts 1.15
 import QtQuick.Controls 2.15 as Controls
-import org.kde.plasma.plasmoid 2.0 as Plasmoid  // Added version for enum reliability
+import org.kde.plasma.plasmoid 2.0
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.plasma5support as Plasma5Support
 
-Plasmoid.PlasmoidItem {
+PlasmoidItem {
     id: root
 
     // Global color state (HSV for wheel/sliders)
@@ -24,7 +24,9 @@ Plasmoid.PlasmoidItem {
 
     Layout.minimumWidth: 300
     Layout.minimumHeight: 400
-    plasmoid.representation: Plasmoid.CompactRepresentation  // Fixed property name
+
+    // preferredRepresentation: compactRepresentation  // Uncomment if needed
+
     compactRepresentation: Kirigami.Icon {
         source: plasmoid.icon  // Uses metadata icon for panel
         MouseArea {
@@ -32,6 +34,7 @@ Plasmoid.PlasmoidItem {
             onClicked: plasmoid.expanded = !plasmoid.expanded
         }
     }
+
     fullRepresentation: Kirigami.Page {
         id: fullView
         Layout.preferredWidth: 400
@@ -67,7 +70,7 @@ Plasmoid.PlasmoidItem {
                     Item {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
-                        Layout.minimumWidth: Kirigami.Units.gridUnit * 15  // Fixed min width to break loop; adjust as needed
+                        Layout.minimumWidth: Kirigami.Units.gridUnit * 15  // Breaks layout loop
 
                         ColorWheel {
                             id: colorWheel
@@ -76,8 +79,8 @@ Plasmoid.PlasmoidItem {
                             height: width
                             hue: root.hue
                             saturation: root.saturation
-                            onUpdateHue: function(hue) { root.hue = hue }
-                            onUpdateSaturation: function(saturation) { root.saturation = saturation }
+                            onUpdateHue: (hue) => root.hue = hue  // Arrow func to preserve scope
+                            onUpdateSaturation: (saturation) => root.saturation = saturation  // Arrow func
                         }
                     }
 
@@ -91,11 +94,11 @@ Plasmoid.PlasmoidItem {
                         value: root.value
                         alpha: root.alpha
                         selectedColor: root.selectedColor
-                        onUpdateMode: function(mode) { root.mode = mode }
-                        onUpdateHue: function(hue) { root.hue = hue }
-                        onUpdateSaturation: function(saturation) { root.saturation = saturation }
-                        onUpdateValue: function(value) { root.value = value }
-                        onUpdateAlpha: function(alpha) { root.alpha = alpha }
+                        onUpdateMode: (mode) => root.mode = mode  // Arrow func
+                        onUpdateHue: (hue) => root.hue = hue  // Arrow func
+                        onUpdateSaturation: (saturation) => root.saturation = saturation  // Arrow func
+                        onUpdateValue: (value) => root.value = value  // Arrow func
+                        onUpdateAlpha: (alpha) => root.alpha = alpha  // Arrow func
                     }
                 }
 
@@ -114,7 +117,7 @@ Plasmoid.PlasmoidItem {
                     palettes: root.palettes
                     selectedColor: root.selectedColor
                     clipboard: clipboard
-                    onUpdatePalettes: function(palettes) { root.palettes = palettes }
+                    onUpdatePalettes: (palettes) => root.palettes = palettes  // Arrow func
                 }
             }
 
@@ -124,7 +127,7 @@ Plasmoid.PlasmoidItem {
                 Layout.fillHeight: true
                 palettes: root.palettes
                 clipboard: clipboard
-                onUpdatePalettes: function(palettes) { root.palettes = palettes }
+                onUpdatePalettes: (palettes) => root.palettes = palettes  // Arrow func
             }
         }
     }

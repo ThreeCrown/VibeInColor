@@ -14,7 +14,7 @@ ColumnLayout {
 
     Controls.ComboBox {
         Layout.fillWidth: true
-        model: palettes ? palettes.map(p => p.name || "Unnamed") : []
+        model: palettes ? palettes.map(p => p.name || "Unnamed") : []  // Already has check
         currentIndex: selectedPaletteIndex
         onCurrentIndexChanged: selectedPaletteIndex = currentIndex
     }
@@ -22,7 +22,7 @@ ColumnLayout {
     RowLayout {
         Layout.fillWidth: true
         Repeater {
-            model: palettes.length > 0 ? (palettes[selectedPaletteIndex].colors || []) : []
+            model: (palettes || []).length > 0 ? ((palettes[selectedPaletteIndex] || {}).colors || []) : []  // Add null checks
             Rectangle {
                 width: 30
                 height: 30
@@ -44,7 +44,7 @@ ColumnLayout {
         Controls.Button {
             text: "+ Add to Palette"
             onClicked: {
-                let dialog = nicknameDialog.createObject(root)
+                let dialog = nicknameDialog.createObject(root.parent)
                 dialog.open()
             }
         }
@@ -52,69 +52,72 @@ ColumnLayout {
         Controls.Button {
             text: "New Palette"
             onClicked: {
-                let dialog = newPaletteDialog.createObject(root)
+                let dialog = newPaletteSheet.createObject(root.parent, { withInitialColor: true, initialColor: selectedColor })
+                dialog.accepted.connect(function() {
+                    let newPalette = {name: dialog.paletteName || "New Palette", colors: [{color: dialog.initialColor.toString(), nickname: dialog.colorNickname}]}
+                    let newPalettes = palettes.slice()
+                    newPalettes.push(newPalette)
+                    root.updatePalettes(newPalettes)
+                    root.selectedPaletteIndex = newPalettes.length - 1
+                    dialog.close()
+                })
                 dialog.open()
             }
         }
     }
 
     Component {
+        id: newPaletteSheet
+        NewPaletteSheet { }
+    }
+
+    Component {
         id: nicknameDialog
         Kirigami.OverlaySheet {
-            implicitWidth: Kirigami.Units.gridUnit * 20  // Reasonable fixed width
+            implicitWidth: Kirigami.Units.gridUnit * 20
             title: "Add Color Nickname"
-            ColumnLayout {  // Switched to ColumnLayout to avoid loops
-                Controls.Label { text: "Nickname (optional):" }  // Optional explicit label
+
+            background: Rectangle {
+                color: Kirigami.Theme.backgroundColor
+                opacity: 0.95
+                radius: Kirigami.Units.smallSpacing * 2
+                border.color: Kirigami.Theme.textColor
+                border.width: 1
+            }
+
+            ColumnLayout {
+                Controls.Label { text: "Nickname (optional):" }
                 Controls.TextField {
                     id: nickField
                     Layout.fillWidth: true
                     placeholderText: "Optional nickname"
                 }
+            }
+
+            footer: RowLayout {
+                Item { Layout.fillWidth: true }
                 Controls.Button {
-                    Layout.alignment: Qt.AlignRight
+                    text: "Cancel"
+                    onClicked: close()
+                }
+                Controls.Button {
                     text: "Add"
                     onClicked: {
-                        let newColors = palettes[selectedPaletteIndex].colors.slice()
+                        let newColors = (palettes[selectedPaletteIndex].colors || []).slice()  // Add check
                         newColors.push({color: selectedColor.toString(), nickname: nickField.text})
-                        let newPalettes = palettes.slice()
+                        let newPalettes = (palettes || []).slice()
                         newPalettes[selectedPaletteIndex].colors = newColors
                         root.updatePalettes(newPalettes)
                         close()
                     }
                 }
             }
-        }
-    }
 
-    Component {
-        id: newPaletteDialog
-        Kirigami.OverlaySheet {
-            implicitWidth: Kirigami.Units.gridUnit * 20  // Reasonable fixed width
-            title: "New Palette Name"
-            ColumnLayout {  // Switched to ColumnLayout to avoid loops
-                Controls.Label { text: "Palette name:" }  // Optional explicit label
-                Controls.TextField {
-                    id: nameField
-                    Layout.fillWidth: true
-                    placeholderText: "Palette name"
-                }
-                Controls.Label { text: "Nickname for first color:" }  // Optional explicit label
-                Controls.TextField {
-                    id: nickField2
-                    Layout.fillWidth: true
-                    placeholderText: "Nickname for first color"
-                }
-                Controls.Button {
-                    Layout.alignment: Qt.AlignRight
-                    text: "Create"
-                    onClicked: {
-                        let newPalette = {name: nameField.text || "New Palette", colors: [{color: selectedColor.toString(), nickname: nickField2.text}]}
-                        let newPalettes = palettes.slice()
-                        newPalettes.push(newPalette)
-                        root.updatePalettes(newPalettes)
-                        root.selectedPaletteIndex = newPalettes.length - 1
-                        close()
-                    }
+            onOpened: {
+                nickField.forceActiveFocus()
+                if (parent) {
+                    x = (parent.width - width) / 2
+                    y = (parent.height - height) / 2
                 }
             }
         }
