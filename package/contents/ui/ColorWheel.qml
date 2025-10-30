@@ -23,23 +23,23 @@ Item {
         color: "white"
         border.color: "black"
         border.width: 1
-        x: (root.width / 2) + (root.width / 2 * root.saturation * Math.cos(2 * Math.PI * root.hue)) - width / 2
-        y: (root.height / 2) + (root.height / 2 * root.saturation * Math.sin(2 * Math.PI * root.hue)) - height / 2
+        x: (root.width / 2) + (root.width / 2 * root.saturation * -Math.cos(2 * Math.PI * root.hue)) - width / 2
+        y: (root.height / 2) + (root.height / 2 * root.saturation * -Math.sin(2 * Math.PI * root.hue)) - height / 2
     }
 
     MouseArea {
         anchors.fill: parent
-        onPressed: (mouse) => update(mouse)  // Explicit param to fix deprecation
-        onPositionChanged: (mouse) => update(mouse)  // Explicit param
+        onPressed: (mouse) => update(mouse)
+        onPositionChanged: (mouse) => update(mouse)
 
         function update(mouse) {
             let dx = mouse.x - width / 2
             let dy = mouse.y - height / 2
             let r = Math.sqrt(dx*dx + dy*dy) / (width / 2)
             if (r > 1.0) return
-            let a = Math.atan2(dy, dx) / (2 * Math.PI)
+            let a = Math.atan2(-dy, dx) / (2 * Math.PI)
             if (a < 0) a += 1.0
-            root.updateHue(a)
+            root.updateHue(1 - ((a - 0.5 + 1.0) % 1.0))
             root.updateSaturation(r)
         }
     }
