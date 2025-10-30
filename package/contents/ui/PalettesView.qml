@@ -6,23 +6,25 @@ import org.kde.kirigami as Kirigami
 ColumnLayout {
     id: root
     property var palettes: []
+    property var clipboard
+
     signal updatePalettes(var palettes)
 
     ListView {
         Layout.fillWidth: true
         Layout.fillHeight: true
-        model: palettes
+        model: palettes || []  // Add null check
         delegate: Controls.ItemDelegate {
             width: ListView.view.width
             ColumnLayout {
-                Controls.Label { text: modelData.name }
+                Controls.Label { text: modelData.name || "Unnamed" }
                 RowLayout {
                     Repeater {
-                        model: modelData.colors
+                        model: modelData.colors || []
                         Rectangle {
                             width: 20
                             height: 20
-                            color: modelData.color
+                            color: modelData.color || "transparent"
                         }
                     }
                 }
@@ -35,9 +37,21 @@ ColumnLayout {
         Layout.alignment: Qt.AlignHCenter
         text: "+ New Palette"
         onClicked: {
-            let dialog = newPaletteDialog.component.createObject(root)
+            let dialog = newPaletteSheet.createObject(root.parent, { withInitialColor: false })
+            dialog.accepted.connect(function() {
+                let newPalette = {name: dialog.paletteName || "New Palette", colors: []}
+                let newPalettes = (palettes || []).slice()
+                newPalettes.push(newPalette)
+                root.updatePalettes(newPalettes)
+                dialog.close()
+            })
             dialog.open()
         }
+    }
+
+    Component {
+        id: newPaletteSheet
+        NewPaletteSheet { }
     }
 
     Kirigami.OverlaySheet {
@@ -48,46 +62,42 @@ ColumnLayout {
             open()
         }
 
+        background: Rectangle {
+            color: Kirigami.Theme.backgroundColor
+            opacity: 0.95
+            radius: Kirigami.Units.smallSpacing * 2
+            border.color: Kirigami.Theme.textColor
+            border.width: 1
+        }
+
+        onOpened: {
+            if (parent) {
+                x = (parent.width - width) / 2
+                y = (parent.height - height) / 2
+            }
+        }
+
         PaletteDetail {
             anchors.fill: parent
-            palette: palettes[paletteIndex]
-            onPaletteChanged: {
-                let newPalettes = palettes.slice()
-                newPalettes[paletteIndex] = palette
+            palette: (palettes || [])[paletteDetailSheet.paletteIndex] || {name: "", colors: []}  // Add null check for palettes
+            clipboard: root.clipboard
+            onUpdatePalette: function(palette) {
+                let newPalettes = (palettes || []).slice()
+                newPalettes[paletteDetailSheet.paletteIndex] = palette
                 root.updatePalettes(newPalettes)
             }
             onDeleteRequested: {
-                let newPalettes = palettes.slice()
-                newPalettes.splice(paletteIndex, 1)
+                let newPalettes = (palettes || []).slice()
+                newPalettes.splice(paletteDetailSheet.paletteIndex, 1)
                 root.updatePalettes(newPalettes)
                 paletteDetailSheet.close()
             }
             onCloneRequested: {
-                let clone = {name: palette.name + " Copy", colors: palette.colors.slice()}
-                let newPalettes = palettes.slice()
+                let clone = {name: palette.name + " Copy", colors: (palette.colors || []).slice()}
+                let newPalettes = (palettes || []).slice()
                 newPalettes.push(clone)
                 root.updatePalettes(newPalettes)
                 paletteDetailSheet.close()
-            }
-        }
-    }
-
-    Component {
-        id: newPaletteDialog
-        Kirigami.OverlaySheet {
-            title: "New Palette Name"
-            Kirigami.FormLayout {
-                Controls.TextField { id: nameField; placeholderText: "Palette name" }
-                Controls.Button {
-                    text: "Create"
-                    onClicked: {
-                        let newPalette = {name: nameField.text, colors: []}
-                        let newPalettes = palettes.slice()
-                        newPalettes.push(newPalette)
-                        root.updatePalettes(newPalettes)
-                        close()
-                    }
-                }
             }
         }
     }

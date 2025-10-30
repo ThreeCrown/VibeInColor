@@ -27,7 +27,7 @@ ColumnLayout {
     ListView {
         Layout.fillWidth: true
         Layout.fillHeight: true
-        model: palette.colors
+        model: palette.colors || []  // Add null check to prevent undefined error
         delegate: RowLayout {
             Rectangle {
                 width: 30

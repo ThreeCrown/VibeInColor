@@ -1,16 +1,32 @@
 import QtQuick 2.15
 import QtQuick.Layouts 1.15
 import QtQuick.Controls 2.15 as Controls
-import org.kde.plasma.plasmoid as Plasmoid
+import org.kde.plasma.plasmoid 2.0
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.plasma5support as Plasma5Support
 
-Plasmoid.PlasmoidItem {
+PlasmoidItem {
     id: root
+
+    // Global color state (HSV for wheel/sliders)
+    property real hue: 0.0
+    property real saturation: 1.0
+    property real value: 1.0
+    property real alpha: 1.0
+    property color selectedColor: Qt.hsva(hue, saturation, value, alpha)
+    property string mode: "HSV"  // Dropdown selection: HSV, RGB
+
+    // Palette storage (JSON array of {name: string, colors: [{color: string, nickname: string}]})
+    property string palettesConfig: plasmoid.configuration.palettes
+    onPalettesConfigChanged: palettes = palettesConfig ? JSON.parse(palettesConfig) : []
+    property var palettes: []
+    onPalettesChanged: plasmoid.configuration.palettes = JSON.stringify(palettes)
 
     Layout.minimumWidth: 300
     Layout.minimumHeight: 400
-    preferredRepresentation: Plasmoid.CompactRepresentation
+
+    // preferredRepresentation: compactRepresentation  // Uncomment if needed
+
     compactRepresentation: Kirigami.Icon {
         source: plasmoid.icon  // Uses metadata icon for panel
         MouseArea {
@@ -18,25 +34,11 @@ Plasmoid.PlasmoidItem {
             onClicked: plasmoid.expanded = !plasmoid.expanded
         }
     }
+
     fullRepresentation: Kirigami.Page {
         id: fullView
         Layout.preferredWidth: 400
         Layout.preferredHeight: 500
-
-        // Global color state (HSV for wheel/sliders)
-        property real hue: 0.0
-        property real saturation: 1.0
-        property real value: 1.0
-        property real alpha: 1.0
-        property color selectedColor: Qt.hsva(hue, saturation, value, alpha)
-        property string mode: "HSV"  // Dropdown selection: HSV, RGB
-
-        // Palette storage (JSON array of {name: string, colors: [{color: string, nickname: string}]})
-        property var palettes: {
-            let stored = plasmoid.configuration.palettes || "[]"
-            return JSON.parse(stored)
-        }
-        onPalettesChanged: plasmoid.configuration.palettes = JSON.stringify(palettes)
 
         // Tabs at top
         Controls.TabBar {
@@ -66,21 +68,21 @@ Plasmoid.PlasmoidItem {
                     Layout.fillHeight: true
 
                     Item {
-                      Layout.preferredWidth: parent.width * 0.6
-                      Layout.fillHeight: true
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        Layout.minimumWidth: Kirigami.Units.gridUnit * 15  // Breaks layout loop
 
-                      ColorWheel {
-                        id: colorWheel
-                        anchors.centerIn: parent
-                        width: Math.min(parent.width, parent.height) * 0.8
-                        height: width
-                        hue: root.hue
-                        saturation: root.saturation
-                        onHueChanged: root.hue = hue
-                        onSaturationChanged: root.saturation = saturation
-                      }
+                        ColorWheel {
+                            id: colorWheel
+                            anchors.centerIn: parent
+                            width: Math.min(parent.width, parent.height) * 0.9
+                            height: width
+                            hue: root.hue
+                            saturation: root.saturation
+                            onUpdateHue: (hue) => root.hue = hue  // Arrow func to preserve scope
+                            onUpdateSaturation: (saturation) => root.saturation = saturation  // Arrow func
+                        }
                     }
-                    
 
                     Sliders {
                         id: sliders
@@ -92,11 +94,11 @@ Plasmoid.PlasmoidItem {
                         value: root.value
                         alpha: root.alpha
                         selectedColor: root.selectedColor
-                        onUpdateMode: root.mode = mode
-                        onUpdateHue: root.hue = hue
-                        onUpdateSaturation: root.saturation = saturation
-                        onUpdateValue: root.value = value
-                        onUpdateAlpha: root.alpha = alpha
+                        onUpdateMode: (mode) => root.mode = mode  // Arrow func
+                        onUpdateHue: (hue) => root.hue = hue  // Arrow func
+                        onUpdateSaturation: (saturation) => root.saturation = saturation  // Arrow func
+                        onUpdateValue: (value) => root.value = value  // Arrow func
+                        onUpdateAlpha: (alpha) => root.alpha = alpha  // Arrow func
                     }
                 }
 
@@ -114,7 +116,8 @@ Plasmoid.PlasmoidItem {
                     Layout.fillWidth: true
                     palettes: root.palettes
                     selectedColor: root.selectedColor
-                    onPalettesChanged: root.palettes = palettes
+                    clipboard: clipboard
+                    onUpdatePalettes: (palettes) => root.palettes = palettes  // Arrow func
                 }
             }
 
@@ -123,7 +126,8 @@ Plasmoid.PlasmoidItem {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 palettes: root.palettes
-                onPalettesChanged: root.palettes = palettes
+                clipboard: clipboard
+                onUpdatePalettes: (palettes) => root.palettes = palettes  // Arrow func
             }
         }
     }
