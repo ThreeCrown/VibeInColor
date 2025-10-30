@@ -8,6 +8,9 @@ import org.kde.plasma.plasma5support as Plasma5Support
 PlasmoidItem {
     id: root
 
+    preferredRepresentation: compactRepresentation
+
+
     // Global color state (HSV for wheel/sliders)
     property real hue: 0.0
     property real saturation: 1.0
@@ -22,23 +25,24 @@ PlasmoidItem {
     property var palettes: []
     onPalettesChanged: plasmoid.configuration.palettes = JSON.stringify(palettes)
 
-    Layout.minimumWidth: 300
-    Layout.minimumHeight: 400
-
-    // preferredRepresentation: compactRepresentation  // Uncomment if needed
-
     compactRepresentation: Kirigami.Icon {
-        source: plasmoid.icon  // Uses metadata icon for panel
+        source: Qt.resolvedUrl("../icons/VICLogo.png")
         MouseArea {
             anchors.fill: parent
-            onClicked: plasmoid.expanded = !plasmoid.expanded
+            onClicked: {
+                expanded = !expanded;
+            }
         }
     }
+
 
     fullRepresentation: Kirigami.Page {
         id: fullView
         Layout.preferredWidth: 400
         Layout.preferredHeight: 500
+        Layout.minimumWidth: 300
+        Layout.minimumHeight: 400
+
 
         // Tabs at top
         Controls.TabBar {

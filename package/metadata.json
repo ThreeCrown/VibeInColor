@@ -1,8 +1,8 @@
 {
   "KPlugin": {
-    "Name": "VibeInColor Color Picker",
+    "Name": "VibeInColor",
     "Description": "A customizable color picker with wheel and outputs",
-    "Icon": "icons/vibeincolor.svg",
+    "Icon": "application-graphics",
     "Id": "org.threecrown.vibeincolor",
     "Version": "1.0",
     "Website": "https://github.com/threecrown/VibeInColor",
